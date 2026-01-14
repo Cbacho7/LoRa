@@ -153,11 +153,11 @@ def main():
     filtered_noise = mod.bandpass_filter(noise, mod.f0, mod.f0 + mod.BW)
     signal_noisy = signal + filtered_noise
     filtered_signal_noisy = mod.bandpass_filter(signal_noisy, mod.f0, mod.f0 + mod.BW)
-    mod.save_spectrogram(signal, symbols, msg, save_as=f'fotos_sf{mod.SF}/signal_sf{mod.SF}.png')
-    mod.save_spectrogram(noise, symbols, msg, save_as=f'fotos_sf{mod.SF}/noise.png')
-    mod.save_spectrogram(filtered_noise, symbols, msg, save_as=f'fotos_sf{mod.SF}/filtered_noise.png')
-    mod.save_spectrogram(signal_noisy, symbols, msg, save_as=f'fotos_sf{mod.SF}/signal_noisy.png')
-    mod.save_spectrogram(filtered_signal_noisy, symbols, msg, save_as=f'fotos_sf{mod.SF}/filtered_signal_noisy.png')
+    mod.save_spectrogram(signal, symbols, msg, save_as=f'Imagenes/fotos_sf{mod.SF}/signal_sf{mod.SF}.png')
+    mod.save_spectrogram(noise, symbols, msg, save_as=f'Imagenes/fotos_sf{mod.SF}/noise.png')
+    mod.save_spectrogram(filtered_noise, symbols, msg, save_as=f'Imagenes/fotos_sf{mod.SF}/filtered_noise.png')
+    mod.save_spectrogram(signal_noisy, symbols, msg, save_as=f'Imagenes/fotos_sf{mod.SF}/signal_noisy.png')
+    mod.save_spectrogram(filtered_signal_noisy, symbols, msg, save_as=f'Imagenes/fotos_sf{mod.SF}/filtered_signal_noisy.png')
     snr = mod.SNR_cal(filtered_noise, signal)
     print(f"SNR calculado: {snr:.2f} dB")
 

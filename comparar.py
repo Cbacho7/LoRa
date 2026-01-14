@@ -22,14 +22,14 @@ def graficar_comparativa():
     # 2. Configurar el gráfico
     plt.figure(figsize=(10, 6))
 
-    # Curva de Seba (LoRa)
+    # Curva de (LoRa)
     # Se convierte el SER a porcentaje (* 100)
     plt.plot(snr_lora, ser_lora * 100, marker='o', linestyle='-', 
-             linewidth=2, label="Seb (LoRa SF8 - Ns=30720)", color='#ff7f0e')
+             linewidth=2, label=" (LoRa SF8 - Ns=30720)", color='#ff7f0e')
 
     # Curva de Magic (FSK)
     plt.plot(snr_magic, ser_magic * 100, marker='s', linestyle='--', 
-             linewidth=2, label="Magic (FSK - Ns=24000)", color='#1f77b4')
+             linewidth=2, label=" (FSK - Ns=24000)", color='#1f77b4')
 
     # 3. Estética del gráfico
     plt.xlabel("SNR Real [dB] (Post-Filtro)")
