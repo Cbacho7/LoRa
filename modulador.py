@@ -1,3 +1,4 @@
+# /modulador.py
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
@@ -29,6 +30,45 @@ class Modulador:
 
         self.t = np.arange(self.Ns) / Fs
         self.k = BW / self.Ts       # pendiente del chirp
+
+        self.upchirp = self.generate_upchirp()
+        self.downchirp = self.generate_downchirp()
+
+    def generate_upchirp(self):
+        """
+        Genera un upchirp LoRa de referencia (sin símbolo).
+        """
+        phase_up = 2 * np.pi * (self.f0 * self.t + 0.5 * self.k * self.t**2)
+        return np.exp(1j * phase_up)
+
+
+    def generate_downchirp(self) -> np.ndarray:
+        """
+        Genera un downchirp LoRa de referencia (sin símbolo).
+        """
+        phase_down = 2 * np.pi * ((self.f0 + self.BW) * self.t - 0.5 * self.k * self.t**2)
+        return np.exp(1j * phase_down)
+    
+    def generate_preamble(self) -> np.ndarray:
+        """
+        Genera: 8 Upchirps + 2 Downchirps + 0.25 Downchirp
+        """
+        preamble = []
+
+        # 8 upchirps
+        for _ in range(8):
+            preamble.append(self.upchirp)
+
+        # 2 downchirps completos
+        for _ in range(2):
+            preamble.append(self.downchirp)
+
+        # 0.25 downchirp 
+        quarter_down = self.downchirp[: self.Ns // 4]
+        preamble.append(quarter_down)
+
+        return np.concatenate(preamble)
+    
     
     def msg_to_symbols(self, msg: str) -> list[int]:
         # Convertir todo el mensaje a una sola cadena de bits
@@ -47,6 +87,16 @@ class Modulador:
             symbols.append(int(chunk, 2)) # Convertir esos bits a un número (símbolo)
             
         return symbols
+    
+    def generate_header(self, num_symbols: int) -> list[int]:
+        """
+        Genera el header LoRa con el número de símbolos del mensaje.
+        """
+        if num_symbols >= self.M:
+            raise ValueError("Payload demasiado largo para el header")
+        
+        header = num_symbols
+        return [header]
 
     def symbol_to_chirp(self, symbol: int) -> np.ndarray:
         if symbol < 0 or symbol >= self.M:
@@ -96,7 +146,7 @@ class Modulador:
             save_path.parent.mkdir(parents=True, exist_ok=True)
             fig.savefig(save_path, dpi=300, bbox_inches='tight')
             plt.close(fig)
-            print(f"✓ Figura guardada como: {save_path}")
+            print(f"Figura guardada como: {save_path}")
         else:
             plt.show()
 
@@ -126,7 +176,6 @@ class Modulador:
         """
         nyq = self.Fs / 2
         b, a = butter(order, [f_inicial/nyq, f_final/nyq], btype='band')
-        #return filtfilt(b, a, np.real(signal)) + 1j * filtfilt(b, a, np.imag(signal))
         return filtfilt(b, a, signal)
 
     def SNR_cal(self, Ruido, Signal):
@@ -160,7 +209,6 @@ def main():
     mod.save_spectrogram(filtered_signal_noisy, symbols, msg, save_as=f'Imagenes/fotos_sf{mod.SF}/filtered_signal_noisy.png')
     snr = mod.SNR_cal(filtered_noise, signal)
     print(f"SNR calculado: {snr:.2f} dB")
-
 
 if __name__ == "__main__":
     main()

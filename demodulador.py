@@ -1,3 +1,4 @@
+# /demodulador.py
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
@@ -28,79 +29,34 @@ class Demodulador:
         self.Ts = self.M / BW       # duración del símbolo
         self.Ns = int(self.Ts * Fs) # muestras por símbolo
 
-        self.t = np.arange(self.Ns) / Fs
+        self.t = np.arange(0, self.Ns) / Fs
         self.k = BW / self.Ts       # pendiente del chirp
-
+        
         self.upchirp = self.generate_upchirp()
         self.downchirp = self.generate_downchirp()
         
-        
     def generate_upchirp(self):
         """
-        Genera un upchirp LoRa de referencia (sin símbolo).
+        Genera un Up-Chirp de referencia en la banda.
+        Sube desde f0 hasta f0+BW.
         """
-        f_inst = (self.k * self.t) % self.BW
-        phase = 2 * np.pi * np.cumsum(f_inst) / self.Fs
-        return np.exp(1j * phase)
+        phase_up = 2 * np.pi * (self.f0 * self.t + 0.5 * self.k * self.t**2)
+        return np.exp(1j * phase_up)
 
-    
+
     def generate_downchirp(self) -> np.ndarray:
         """
-        Genera un downchirp LoRa de referencia (sin símbolo).
+        Genera un Down-Chirp de referencia en la banda.
+        Baja desde f0+BW hasta f0.
         """
-        f_inst = ((-self.k * self.t) % self.BW)
-        phase = 2 * np.pi * np.cumsum(f_inst) / self.Fs
-        return np.exp(1j * phase)
+        phase_down = 2 * np.pi * ((self.f0 + self.BW) * self.t - 0.5 * self.k * self.t**2)
+        return np.exp(1j * phase_down)
     
-    def generate_preamble(self) -> np.ndarray:
-        preamble = []
-
-        # 8 upchirps
-        for _ in range(8):
-            preamble.append(self.upchirp)
-
-        # 2 downchirps completos
-        for _ in range(2):
-            preamble.append(self.downchirp)
-
-        # 0.25 downchirp 
-        quarter_down = self.downchirp[: self.Ns // 4]
-        preamble.append(quarter_down)
-
-        return np.concatenate(preamble)
-    
-    def find_preamble(self, rx_signal):
-        for i in range(0, len(rx_signal) - self.Ns, self.Ns // 4):
-            block = rx_signal[i:i + self.Ns]
-            dechirped = block * np.conj(self.upchirp)
-            spectrum = np.abs(np.fft.fft(dechirped))[:self.M]
-
-            if np.argmax(spectrum) == 0:
-                return i
-        return None
-
     def dechirp(self, symbol_signal):
-        # bajar a banda base
-        bb = symbol_signal * np.exp(-1j * 2 * np.pi * self.f0 * self.t)
+        dechirp = symbol_signal * np.conj(self.upchirp)
+        return dechirp
 
-        # quitar chirp
-        dechirped = bb * np.conj(self.upchirp)
-        return dechirped
-
-    # def fft_symbol(self, dechirped: np.ndarray) -> np.ndarray:
-    #     """
-    #     Calcula la FFT del símbolo dechirpeado y devuelve
-    #     la magnitud de los bins útiles.
-    #     """
-    #     if len(dechirped) != self.Ns:
-    #         raise ValueError("La señal dechirpeada debe tener Ns muestras")
-
-    #     fft_result = np.fft.fft(dechirped)
-
-    #     # Solo los bins útiles 
-    #     spectrum = np.abs(fft_result[:self.M])
-
-        return spectrum
+   
     def fft_symbol(self, dechirped: np.ndarray) -> np.ndarray:
         """
         Calcula la FFT y suma la energía de las frecuencias positivas y 
@@ -191,8 +147,6 @@ class Demodulador:
             return "Error de decodificación: los bits recibidos no forman texto válido."
         
 
-
-
 def main():
     # Parámetros
     SF = 8
@@ -204,50 +158,25 @@ def main():
     demod = Demodulador(SF, BW, Fs, f0)
 
     msg_tx = "Love me love me Say that you love me Fool me fool me Go on and fool me Love me love me Pretend that you love me Leave me leave me Just say that you need me"
-    
+
+    # TX
     symbols_tx = mod.msg_to_symbols(msg_tx)
+    signal_tx = mod.symbols_to_signal(symbols_tx)
 
-    preamble = demod.generate_preamble()
-    payload = mod.symbols_to_signal(symbols_tx)
-
-    signal_tx = np.concatenate([preamble, payload])
-
-    # (opcional ruido)
-    noise = mod.make_noise(ruido_dB=-34, signal=signal_tx)
-    filtered_noise = mod.bandpass_filter(noise, mod.f0, mod.f0 + mod.BW)
-
-    # Para debug limpio:
-    #signal_rx = signal_tx
-    # Para ruido:
+    # Canal
+    noise = mod.make_noise(ruido_dB=-40, signal=signal_tx)
+    filtered_noise = mod.bandpass_filter(noise, f0, f0 + BW)
     signal_rx = signal_tx + filtered_noise
-    #signal_rx = np.roll(signal_tx, 10)
-    #t_global = np.arange(len(signal_tx)) / Fs
-    #signal_rx = signal_tx * np.exp(1j * 2 * np.pi * 20 * t_global)
 
-
-
-
-    # RECEPTOR 
-    start = demod.find_preamble(signal_rx)
-
-    if start is None:
-        print("No se detectó preámbulo")
-        return
-
-    preamble_len = int((8 + 2.25) * demod.Ns)
-    payload_start = start + preamble_len
-
-    symbols_rx = demod.signal_to_symbols(signal_rx[payload_start:])
-    
+    # RX
+    symbols_rx = demod.signal_to_symbols(signal_rx)
     msg_rx = demod.symbols_to_msg(symbols_rx)
 
-    # RESULTADOS 
+    # Resultados
     print(f"TX: {msg_tx}")
     print(f"Símbolos TX: {symbols_tx}")
     print(f"Símbolos RX: {symbols_rx}")
     print(f"RX: {msg_rx}")
-
-
 
 if __name__ == "__main__":
     main()

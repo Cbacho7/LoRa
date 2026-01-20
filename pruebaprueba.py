@@ -25,21 +25,8 @@ def run_ser_curve(SF, snr_range_input, num_symbols, num_trials):
         for _ in range(num_trials):
             # 1. Generar señal
             #symbols_tx = np.random.randint(0, mod.M, size=num_symbols) # Devuelve array de int
-#             symbols_tx = np.array([9, 179, 53, 61, 137, 85, 184, 77, 95, 67, 193, 52, 77, 126, 83, 52, 12, 151, 231, 82, 
-#     87, 149, 107, 124, 182, 210, 130, 177, 195, 145, 118, 93, 219, 236, 137, 207, 4, 119, 
-#     118, 99, 130, 133, 150, 65, 104, 159, 104, 195, 41, 26, 220, 199, 237, 162, 113, 124, 
-#     0, 143, 224, 36, 188, 114, 48, 198, 60, 94, 188, 183, 219, 157, 162, 119, 95, 194, 231, 
-#     16, 44, 39, 187, 12, 170, 144, 124, 79, 127, 241, 222, 215, 117, 63, 236, 27, 94, 35, 
-#     181, 207, 96, 145, 182, 41
-#  ])
 
-            symbols_tx = np.array([
-    13,  5,  2, 12,  1,  0, 15,  5, 11,  3,  9,  4,  8,  6, 14, 10,  2,  7, 12,  0,
-    15,  9,  4,  6,  1, 11,  8, 13,  3,  7, 10,  5, 14,  2,  0, 12, 11,  6,  4, 15,
-     8,  1, 13,  7, 10,  3,  9, 14,  5,  2,  0,  6, 12, 11,  8, 15,  4,  1, 13,  7,
-     3, 10,  9, 14,  2,  5,  0, 11, 12,  6, 15,  4,  8,  1, 13,  7,  3, 10,  9, 14,
-     5,  2, 11,  0, 12,  6, 15,  4,  8,  1, 13,  7,  3, 10,  2, 14,  5,  9,  0, 11
-])
+            symbols_tx = np.array([13,  5,  2, 12,  1,  0, 15,  5, 11,  3,  9,  4,  8,  6, 14, 10,  2,  7, 12,  0,15,  9,  4,  6,  1, 11,  8, 13,  3,  7, 10,  5, 14,  2,  0, 12, 11,  6,  4, 15, 8,  1, 13,  7, 10,  3,  9, 14,  5,  2,  0,  6, 12, 11,  8, 15,  4,  1, 13,  7, 3, 10,  9, 14,  2,  5,  0, 11, 12,  6, 15,  4,  8,  1, 13,  7,  3, 10,  9, 14, 5,  2, 11,  0, 12,  6, 15,  4,  8,  1, 13,  7,  3, 10,  2, 14,  5,  9,  0, 11])
             signal_tx = mod.symbols_to_signal(symbols_tx)
 
             # 2. Generar ruido 
@@ -129,7 +116,7 @@ def main():
 
         # --- GUARDAR VALORES ---
     # Esto creará el archivo 'datos_seba_SF8.json'
-    guardar_resultados(8, snr_real, ser, prefijo="seba")
+    #guardar_resultados(8, snr_real, ser, prefijo="seba")
     # Etiquetas y Estilo
     plt.xlabel("SNR Calculado [dB] (Post-Filtro)")
     plt.ylabel("Tasa de Error de Símbolo (SER) [%]")
@@ -142,7 +129,7 @@ def main():
     plt.ylim(-2, 105) 
     
     # Guardar gráfico para tu PPT
-    plt.savefig("resultado_ser_lora_prba.png", dpi=300)
+    plt.savefig("resultado_ser_lora_paarba.png", dpi=300)
     plt.show()
 
 if __name__ == "__main__":

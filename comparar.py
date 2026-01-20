@@ -13,7 +13,7 @@ def cargar_datos(nombre_archivo):
 
 def graficar_comparativa():
     # 1. Cargar los datos de ambos experimentos
-    snr_lora, ser_lora = cargar_datos("datos_lora_SF8.json")
+    snr_lora, ser_lora = cargar_datos("datos_seba_SF8.json")
     snr_magic, ser_magic = cargar_datos("datos_magic_SF8.json")
 
     if snr_lora is None or snr_magic is None:
@@ -25,7 +25,7 @@ def graficar_comparativa():
     # Curva de (LoRa)
     # Se convierte el SER a porcentaje (* 100)
     plt.plot(snr_lora, ser_lora * 100, marker='o', linestyle='-', 
-             linewidth=2, label=" (LoRa SF8 - Ns=30720)", color='#ff7f0e')
+             linewidth=2, label=" (LoRa SF8 BW=140- Ns=87772)", color='#ff7f0e')
 
     # Curva de Magic (FSK)
     plt.plot(snr_magic, ser_magic * 100, marker='s', linestyle='--', 
@@ -44,8 +44,8 @@ def graficar_comparativa():
     plt.ylim(-2, 105)
     
     # 4. Guardar y mostrar
-    plt.savefig("comparativa_final_lora_fsk.png", dpi=300)
-    print("\n✅ Gráfico guardado como: comparativa_final_lora_fsk.png")
+    plt.savefig("Imagenes/comparativa_final_lora_fsk2.png", dpi=300)
+    print("\n✅ Gráfico guardado como: comparativa_final_lora_fsk1.png")
     plt.show()
 
 if __name__ == "__main__":
