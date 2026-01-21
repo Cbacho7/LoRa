@@ -1,22 +1,9 @@
 # .\pyaudio_tx.py
 import numpy as np
-import matplotlib.pyplot as plt
-import scipy.signal as scp
 import pyaudio
-from scipy.io.wavfile import write
 from modulador import Modulador
 
 """Transmisión de señal LoRa usando PyAudio"""
-""" 
-Que debe tener:
-- Modulador LoRa
-- Generación de preámbulo
-- Header
-- Generación de símbolos
-- Generación de señal transmitida
-- Transmisión usando PyAudio
-
-"""
 
 def main():
     # Parámetros de la señal
@@ -33,9 +20,39 @@ def main():
 
     print("Escriba el mensaje a transmitir:")
     msg = input()
-    symbols = mod.msg_to_symbols(msg)
-    preamble_and_symbols = np.concatenate((preamble,symbols))
-    signal_tx = mod.symbols_to_signal(preamble_and_symbols)
+    if not msg:
+        print("Mensaje vacío. Saliendo.")
+        return
+    
+    payload_bytes = msg.encode('latin-1')
+    header_bytes = mod.generate_header(len(payload_bytes))
+
+    frame_symbols = []
+
+    # Header → símbolos LoRa
+    for b in header_bytes:
+        frame_symbols.extend(
+            mod.msg_to_symbols(chr(b))
+        )
+
+    # Payload → símbolos LoRa
+    frame_symbols.extend(
+        mod.msg_to_symbols(msg)
+    )
+
+    frame_symbols = np.array(frame_symbols)
+
+    #frame_symbols = np.concatenate((header, payload))
+    signal = mod.symbols_to_signal(frame_symbols)
+    signal_tx = np.concatenate((preamble, signal))
+
+
+    # Normalizar señal
+    signal_tx = np.real(signal_tx)
+    # Normalizar y dejar margen de seguridad
+    max_val = np.max(np.abs(signal_tx))
+    if max_val > 0:
+        signal_tx = (signal_tx / max_val) * 0.8  # Volumen al 80% para evitar distorsión
 
     # Create PyAudio instance
     py_audio = pyaudio.PyAudio()

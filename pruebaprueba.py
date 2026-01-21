@@ -7,7 +7,7 @@ import json
 
 def run_ser_curve(SF, snr_range_input, num_symbols, num_trials):
     Fs = 48000
-    BW = 400
+    BW = 140
     f0 = 3000
 
     mod = Modulador(SF, BW, Fs, f0)
@@ -104,19 +104,20 @@ def main():
     #     # EJE X: Usamos 'snr_real'
     #     plt.plot(snr_real, ser * 100, marker='o', label=f"SF={SF}", color=colors[SF])
 
+    SF = 7
     ser, snr_real = run_ser_curve(
-        8,
+        SF,
         snr_range_input,
         num_symbols=100, 
         num_trials=15
         )
         
     # EJE X: Usamos 'snr_real'
-    plt.plot(snr_real, ser * 100, marker='o', label=f"SF={8}", color=colors[8])
+    plt.plot(snr_real, ser * 100, marker='o', label=f"SF={SF}", color=colors[SF])
 
         # --- GUARDAR VALORES ---
     # Esto creará el archivo 'datos_seba_SF8.json'
-    #guardar_resultados(8, snr_real, ser, prefijo="seba")
+    guardar_resultados(7, snr_real, ser, prefijo="SF7")
     # Etiquetas y Estilo
     plt.xlabel("SNR Calculado [dB] (Post-Filtro)")
     plt.ylabel("Tasa de Error de Símbolo (SER) [%]")
@@ -129,7 +130,7 @@ def main():
     plt.ylim(-2, 105) 
     
     # Guardar gráfico para tu PPT
-    plt.savefig("resultado_ser_lora_paarba.png", dpi=300)
+    plt.savefig("resultado_ser_lora_SF7.png", dpi=300)
     plt.show()
 
 if __name__ == "__main__":

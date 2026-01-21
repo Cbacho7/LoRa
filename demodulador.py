@@ -32,25 +32,11 @@ class Demodulador:
         self.t = np.arange(0, self.Ns) / Fs
         self.k = BW / self.Ts       # pendiente del chirp
         
-        self.upchirp = self.generate_upchirp()
-        self.downchirp = self.generate_downchirp()
-        
-    def generate_upchirp(self):
-        """
-        Genera un Up-Chirp de referencia en la banda.
-        Sube desde f0 hasta f0+BW.
-        """
         phase_up = 2 * np.pi * (self.f0 * self.t + 0.5 * self.k * self.t**2)
-        return np.exp(1j * phase_up)
+        self.upchirp = np.exp(1j * phase_up) 
 
-
-    def generate_downchirp(self) -> np.ndarray:
-        """
-        Genera un Down-Chirp de referencia en la banda.
-        Baja desde f0+BW hasta f0.
-        """
         phase_down = 2 * np.pi * ((self.f0 + self.BW) * self.t - 0.5 * self.k * self.t**2)
-        return np.exp(1j * phase_down)
+        self.downchirp = np.exp(1j * phase_down)  
     
     def dechirp(self, symbol_signal):
         dechirp = symbol_signal * np.conj(self.upchirp)

@@ -13,8 +13,8 @@ def cargar_datos(nombre_archivo):
 
 def graficar_comparativa():
     # 1. Cargar los datos de ambos experimentos
-    snr_lora, ser_lora = cargar_datos("datos_seba_SF8.json")
-    snr_magic, ser_magic = cargar_datos("datos_magic_SF8.json")
+    snr_lora, ser_lora = cargar_datos("datos_SF7_SF7.json")
+    snr_magic, ser_magic = cargar_datos("MAGIC.JSON")
 
     if snr_lora is None or snr_magic is None:
         return
@@ -25,11 +25,11 @@ def graficar_comparativa():
     # Curva de (LoRa)
     # Se convierte el SER a porcentaje (* 100)
     plt.plot(snr_lora, ser_lora * 100, marker='o', linestyle='-', 
-             linewidth=2, label=" (LoRa SF8 BW=140- Ns=87772)", color='#ff7f0e')
+             linewidth=2, label=" (LoRa SF7 BW=140- Ns=43886)", color='#ff7f0e')
 
     # Curva de Magic (FSK)
     plt.plot(snr_magic, ser_magic * 100, marker='s', linestyle='--', 
-             linewidth=2, label=" (FSK - Ns=24000)", color='#1f77b4')
+             linewidth=2, label=" (FSK - Ns=48000)", color='#1f77b4')
 
     # 3. Estética del gráfico
     plt.xlabel("SNR Real [dB] (Post-Filtro)")

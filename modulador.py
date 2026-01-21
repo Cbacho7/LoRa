@@ -1,4 +1,4 @@
-# /modulador.py
+# .\modulador.py
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
@@ -31,23 +31,12 @@ class Modulador:
         self.t = np.arange(self.Ns) / Fs
         self.k = BW / self.Ts       # pendiente del chirp
 
-        self.upchirp = self.generate_upchirp()
-        self.downchirp = self.generate_downchirp()
-
-    def generate_upchirp(self):
-        """
-        Genera un upchirp LoRa de referencia (sin símbolo).
-        """
         phase_up = 2 * np.pi * (self.f0 * self.t + 0.5 * self.k * self.t**2)
-        return np.exp(1j * phase_up)
+        self.upchirp = np.exp(1j * phase_up) 
 
-
-    def generate_downchirp(self) -> np.ndarray:
-        """
-        Genera un downchirp LoRa de referencia (sin símbolo).
-        """
         phase_down = 2 * np.pi * ((self.f0 + self.BW) * self.t - 0.5 * self.k * self.t**2)
-        return np.exp(1j * phase_down)
+        self.downchirp = np.exp(1j * phase_down)  
+
     
     def generate_preamble(self) -> np.ndarray:
         """
@@ -88,15 +77,15 @@ class Modulador:
             
         return symbols
     
-    def generate_header(self, num_symbols: int) -> list[int]:
+    def generate_header(self, payload_len: int) -> list[int]:
         """
-        Genera el header LoRa con el número de símbolos del mensaje.
+        Longitud del payload en bytes (0 - 255)
         """
-        if num_symbols >= self.M:
-            raise ValueError("Payload demasiado largo para el header")
-        
-        header = num_symbols
-        return [header]
+        if not (0 <= payload_len <= 255):
+            raise ValueError("Payload debe ser 0-255 bytes")
+
+        return [payload_len]
+
 
     def symbol_to_chirp(self, symbol: int) -> np.ndarray:
         if symbol < 0 or symbol >= self.M:
