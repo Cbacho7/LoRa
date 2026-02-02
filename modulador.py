@@ -51,10 +51,14 @@ class Modulador:
         # 2 downchirps completos
         for _ in range(2):
             preamble.append(self.downchirp)
-
+################################################################################################################
         # 0.25 downchirp 
-        quarter_down = self.downchirp[: self.Ns // 4]
-        preamble.append(quarter_down)
+        #shift = self.Ns // 4
+        #quarter_down = self.downchirp[shift:]
+
+        # shift = self.Ns // 4
+        #quarter_down = np.roll(self.downchirp, -shift)
+        #preamble.append(quarter_down)
 
         return np.concatenate(preamble)
     
@@ -78,13 +82,35 @@ class Modulador:
         return symbols
     
     def generate_header(self, payload_len: int) -> list[int]:
-        """
-        Longitud del payload en bytes (0 - 255)
-        """
         if not (0 <= payload_len <= 255):
             raise ValueError("Payload debe ser 0-255 bytes")
+        return [payload_len]   # ← símbolo crudo, NO texto
 
-        return [payload_len]
+    
+    # def generate_header(self, payload_len: int) -> list[int]:
+    #     """
+    #     Codifica la longitud del payload (bytes)
+    #     como símbolos LoRa usando bit-packing.
+    #     """
+    #     if not (0 <= payload_len <= 255):
+    #         raise ValueError("Payload debe ser 0-255 bytes")
+
+    #     # Convertimos el byte payload_len a un carácter
+    #     return self.msg_to_symbols(chr(payload_len))
+
+    
+    # def generate_header(self, payload_len: int) -> list[int]:
+    #     return [payload_len]
+
+    # def generate_header(self, payload_len: int) -> list[int]:
+    #     """
+    #     Codifica la longitud del payload (bytes)
+    #     como símbolos LoRa usando bit-packing.
+    #     """
+    #     if not (0 <= payload_len <= 255):
+    #         raise ValueError("Payload debe ser 0-255 bytes")
+
+    #     return self.msg_to_symbols(chr(payload_len))
 
 
     def symbol_to_chirp(self, symbol: int) -> np.ndarray:

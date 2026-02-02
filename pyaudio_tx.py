@@ -24,27 +24,32 @@ def main():
         print("Mensaje vacío. Saliendo.")
         return
     
+    # payload_bytes = msg.encode('latin-1')
+    # header_symbols = mod.generate_header(len(payload_bytes))
+
     payload_bytes = msg.encode('latin-1')
-    header_bytes = mod.generate_header(len(payload_bytes))
+    header_symbols = mod.generate_header(len(payload_bytes))
+
+    payload_symbols = mod.msg_to_symbols(msg)
+
 
     frame_symbols = []
 
     # Header → símbolos LoRa
-    for b in header_bytes:
-        frame_symbols.extend(
-            mod.msg_to_symbols(chr(b))
-        )
+    frame_symbols.extend(header_symbols)
 
     # Payload → símbolos LoRa
-    frame_symbols.extend(
-        mod.msg_to_symbols(msg)
-    )
+    frame_symbols.extend(mod.msg_to_symbols(msg))
 
     frame_symbols = np.array(frame_symbols)
 
-    #frame_symbols = np.concatenate((header, payload))
     signal = mod.symbols_to_signal(frame_symbols)
     signal_tx = np.concatenate((preamble, signal))
+
+    print(f"Payload length: {len(payload_bytes)} bytes")
+    print(f"Símbolos TX: {len(frame_symbols)}")
+    print(f"Muestras TX: {len(signal_tx)}")
+
 
 
     # Normalizar señal

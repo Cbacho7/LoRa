@@ -1,7 +1,10 @@
 __pycache__/
 .history/
 fotos_sf*/
+Imagenes/
+Pruebas/
 *.npy
 *.png
 *.jpg
 *.jpeg
+todocod.py

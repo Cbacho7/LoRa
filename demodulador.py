@@ -1,4 +1,4 @@
-# /demodulador.py
+# .\demodulador.py
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
@@ -37,6 +37,9 @@ class Demodulador:
 
         phase_down = 2 * np.pi * ((self.f0 + self.BW) * self.t - 0.5 * self.k * self.t**2)
         self.downchirp = np.exp(1j * phase_down)  
+
+        self.symbol_offset = 0
+
     
     def dechirp(self, symbol_signal):
         dechirp = symbol_signal * np.conj(self.upchirp)
@@ -83,9 +86,46 @@ class Demodulador:
 
         dechirped = self.dechirp(symbol_signal)
         spectrum = self.fft_symbol(dechirped)
-        symbol_sup = self.detect_symbol(spectrum)
+        symbol_raw = self.detect_symbol(spectrum)
+        symbol_corr = (symbol_raw - self.symbol_offset) % self.M
+        return symbol_corr
 
-        return symbol_sup
+        # symbol_sup = self.detect_symbol(spectrum)
+
+        # return symbol_sup
+
+    # def chirp_to_symbol(self, chirp: np.ndarray) -> int:
+    #     """
+    #     Convierte un chirp LoRa (Ns muestras) en un símbolo.
+    #     """
+    #     if len(chirp) != self.Ns:
+    #         raise ValueError("El chirp debe tener Ns muestras")
+
+    #     dechirped = self.dechirp(chirp)
+    #     spectrum = self.fft_symbol(dechirped)
+    #     symbol = self.detect_symbol(spectrum)
+
+    #     return symbol
+    
+    # def signal_to_symbols(self, rx_signal: np.ndarray) -> list[int]:
+    #     """
+    #     Convierte una señal LoRa completa en una lista de símbolos.
+    #     Asume símbolos perfectamente alineados.
+    #     """
+    #     symbols = []
+
+    #     num_symbols = len(rx_signal) // self.Ns
+
+    #     for i in range(num_symbols):
+    #         start = i * self.Ns
+    #         end = (i + 1) * self.Ns
+    #         chirp = rx_signal[start:end]
+
+    #         symbol = self.chirp_to_symbol(chirp)
+    #         symbols.append(symbol)
+
+    #     return symbols
+
 
     def signal_to_symbols(self, rx_signal: np.ndarray) -> list[int]:
         """
@@ -105,6 +145,7 @@ class Demodulador:
             symbols.append(symbol_sup)
 
         return symbols
+    
 
     def symbols_to_msg(self, symbols: list[int], encoding="latin-1") -> str:
         """
@@ -132,6 +173,14 @@ class Demodulador:
         except UnicodeDecodeError:
             return "Error de decodificación: los bits recibidos no forman texto válido."
         
+    def bandpass_filter(self, signal, f_inicial, f_final, order=6):
+        """
+        Filtro pasabanda Butterworth aplicado a una señal real.
+        """
+        nyq = self.Fs / 2
+        b, a = butter(order, [f_inicial/nyq, f_final/nyq], btype='band')
+        return filtfilt(b, a, signal)
+        
 
 def main():
     # Parámetros
@@ -143,14 +192,14 @@ def main():
     mod = Modulador(SF, BW, Fs, f0)
     demod = Demodulador(SF, BW, Fs, f0)
 
-    msg_tx = "Love me love me Say that you love me Fool me fool me Go on and fool me Love me love me Pretend that you love me Leave me leave me Just say that you need me"
+    msg_tx = "Hola FSM"#"Love me love me Say that you love me Fool me fool me Go on and fool me Love me love me Pretend that you love me Leave me leave me Just say that you need me"
 
     # TX
     symbols_tx = mod.msg_to_symbols(msg_tx)
     signal_tx = mod.symbols_to_signal(symbols_tx)
 
     # Canal
-    noise = mod.make_noise(ruido_dB=-40, signal=signal_tx)
+    noise = mod.make_noise(ruido_dB=-20, signal=signal_tx)
     filtered_noise = mod.bandpass_filter(noise, f0, f0 + BW)
     signal_rx = signal_tx + filtered_noise
 
