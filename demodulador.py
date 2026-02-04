@@ -86,45 +86,9 @@ class Demodulador:
 
         dechirped = self.dechirp(symbol_signal)
         spectrum = self.fft_symbol(dechirped)
-        symbol_raw = self.detect_symbol(spectrum)
-        symbol_corr = (symbol_raw - self.symbol_offset) % self.M
-        return symbol_corr
+        symbol = self.detect_symbol(spectrum)
+        return symbol
 
-        # symbol_sup = self.detect_symbol(spectrum)
-
-        # return symbol_sup
-
-    # def chirp_to_symbol(self, chirp: np.ndarray) -> int:
-    #     """
-    #     Convierte un chirp LoRa (Ns muestras) en un símbolo.
-    #     """
-    #     if len(chirp) != self.Ns:
-    #         raise ValueError("El chirp debe tener Ns muestras")
-
-    #     dechirped = self.dechirp(chirp)
-    #     spectrum = self.fft_symbol(dechirped)
-    #     symbol = self.detect_symbol(spectrum)
-
-    #     return symbol
-    
-    # def signal_to_symbols(self, rx_signal: np.ndarray) -> list[int]:
-    #     """
-    #     Convierte una señal LoRa completa en una lista de símbolos.
-    #     Asume símbolos perfectamente alineados.
-    #     """
-    #     symbols = []
-
-    #     num_symbols = len(rx_signal) // self.Ns
-
-    #     for i in range(num_symbols):
-    #         start = i * self.Ns
-    #         end = (i + 1) * self.Ns
-    #         chirp = rx_signal[start:end]
-
-    #         symbol = self.chirp_to_symbol(chirp)
-    #         symbols.append(symbol)
-
-    #     return symbols
 
 
     def signal_to_symbols(self, rx_signal: np.ndarray) -> list[int]:
