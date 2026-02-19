@@ -64,7 +64,7 @@ class Demodulador:
         part_neg = np.abs(fft_result[-self.M:])
         
         # Sumamos ambas contribuciones para capturar toda la energía del símbolo
-        spectrum = part_pos + part_neg
+        spectrum = part_pos #+ part_neg
 
         return spectrum
     
@@ -110,32 +110,52 @@ class Demodulador:
 
         return symbols
     
-
-    def symbols_to_msg(self, symbols: list[int], encoding="latin-1") -> str:
+    def symbols_to_bytes(self, symbols: list[int]) -> bytes:
         """
-        Convierte una lista de símbolos LoRa a texto, revirtiendo el empaquetado 
-        de bits (Bit Packing) para cualquier SF.
+        Paso intermedio: Símbolos -> Bytes crudos
         """
-        # Convertir cada símbolo a una cadena de bits de longitud SF
         bit_string = "".join(f"{s:0{self.SF}b}" for s in symbols)
-        
         byte_list = []
         
-        # Tomar la cadena de bits y cortarla en trozos de 8 bits 
         for i in range(0, len(bit_string), 8):
             byte_chunk = bit_string[i:i + 8]
-            
-            # Si el último trozo no completa 8 bits (por el padding del modulador),
-            # lo ignoramos o verificamos que sean solo ceros.
             if len(byte_chunk) == 8:
                 byte_list.append(int(byte_chunk, 2))
-                
-        # 3. Convertir la lista de bytes a texto
-        # Se usa latin-1 para evitar errores con caracteres como la 'ñ'
+        
+        return bytes(byte_list)
+
+    def symbols_to_msg(self, symbols: list[int], encoding="latin-1") -> str:
+        data_bytes = self.symbols_to_bytes(symbols)
         try:
-            return bytes(byte_list).decode(encoding).rstrip('\x00')
+            return data_bytes.decode(encoding).rstrip('\x00')
         except UnicodeDecodeError:
             return "Error de decodificación: los bits recibidos no forman texto válido."
+
+    # def symbols_to_msg(self, symbols: list[int], encoding="latin-1") -> str:
+    #     """
+    #     Convierte una lista de símbolos LoRa a texto, revirtiendo el empaquetado 
+    #     de bits (Bit Packing) para cualquier SF.
+    #     """
+    #     # Convertir cada símbolo a una cadena de bits de longitud SF
+    #     bit_string = "".join(f"{s:0{self.SF}b}" for s in symbols)
+        
+    #     byte_list = []
+        
+    #     # Tomar la cadena de bits y cortarla en trozos de 8 bits 
+    #     for i in range(0, len(bit_string), 8):
+    #         byte_chunk = bit_string[i:i + 8]
+            
+    #         # Si el último trozo no completa 8 bits (por el padding del modulador),
+    #         # lo ignoramos o verificamos que sean solo ceros.
+    #         if len(byte_chunk) == 8:
+    #             byte_list.append(int(byte_chunk, 2))
+                
+    #     # 3. Convertir la lista de bytes a texto
+    #     # Se usa latin-1 para evitar errores con caracteres como la 'ñ'
+    #     try:
+    #         return bytes(byte_list).decode(encoding).rstrip('\x00')
+    #     except UnicodeDecodeError:
+    #         return "Error de decodificación: los bits recibidos no forman texto válido."
         
     def bandpass_filter(self, signal, f_inicial, f_final, order=6):
         """

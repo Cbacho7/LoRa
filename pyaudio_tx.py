@@ -27,7 +27,7 @@ def main():
     # payload_bytes = msg.encode('latin-1')
     # header_symbols = mod.generate_header(len(payload_bytes))
 
-    payload_bytes = msg.encode('latin-1')
+    payload_bytes = msg.encode('latin1')  # Usamos latin1 para soportar caracteres especiales
     header_symbols = mod.generate_header(len(payload_bytes))
 
     payload_symbols = mod.msg_to_symbols(msg)
@@ -41,10 +41,22 @@ def main():
     # Payload → símbolos LoRa
     frame_symbols.extend(mod.msg_to_symbols(msg))
 
-    frame_symbols = np.array(frame_symbols)
+    #frame_symbols = np.array(frame_symbols)
 
     signal = mod.symbols_to_signal(frame_symbols)
+
     signal_tx = np.concatenate((preamble, signal))
+
+    # ruido_dB=-30
+    
+    # noise = mod.make_noise(ruido_dB=ruido_dB, signal=signal_tx)
+    # filtered_noise = mod.bandpass_filter(noise, mod.f0, mod.f0 + mod.BW)
+    # snr_real = mod.SNR_cal(filtered_noise, signal_tx)
+    # print(f"--- REPORTE DE RUIDO ---")
+    # print(f"SNR Solicitado (Broadband): -{ruido_dB} dB")
+    # print(f"SNR Real (In-Band): {snr_real:.2f} dB")
+    # print(f"------------------------")
+    # signal_tx = signal_tx + filtered_noise
 
     print(f"Payload length: {len(payload_bytes)} bytes")
     print(f"Símbolos TX: {len(frame_symbols)}")
@@ -57,7 +69,7 @@ def main():
     # Normalizar y dejar margen de seguridad
     max_val = np.max(np.abs(signal_tx))
     if max_val > 0:
-        signal_tx = (signal_tx / max_val) * 0.8  # Volumen al 80% para evitar distorsión
+        signal_tx = (signal_tx / max_val)  # Volumen al 80% para evitar distorsión
 
     # Create PyAudio instance
     py_audio = pyaudio.PyAudio()

@@ -37,35 +37,48 @@ class Modulador:
         phase_down = 2 * np.pi * ((self.f0 + self.BW) * self.t - 0.5 * self.k * self.t**2)
         self.downchirp = np.exp(1j * phase_down)  
 
-    
+    def generate_upchirps(self, n=8) -> np.ndarray:
+        """
+        Genera n upchirps consecutivos
+        """
+        upchirps = [self.upchirp for _ in range(n)]
+        return np.concatenate(upchirps)
+
+        
+    def generate_downchirps(self, n=2) -> np.ndarray:
+        """
+        Genera n downchirps consecutivos
+        """
+        downchirps = [self.downchirp for _ in range(n)]
+        return np.concatenate(downchirps)
+
+        
     def generate_preamble(self) -> np.ndarray:
         """
-        Genera: 8 Upchirps + 2 Downchirps + 0.25 Downchirp
+        Genera: 7 Upchirps + 3 Downchirps
+        Prueba Header2: 9 Upchirps + 1 Downchirp 
         """
-        preamble = []
+        up = self.generate_upchirps(7)
 
-        # 8 upchirps
-        for _ in range(8):
-            preamble.append(self.upchirp)
+        """Descomentar para pruebas de rutas en la máquina de estados y cambiar el return por el que se quiera probar"""
+        # up1 = self.generate_upchirps(4)
+        # msg = "ab"
+        # symbol = self.msg_to_symbols(msg) # Símbolo de transición (puede ser cualquier otro)
+        # SYMBOLRND = self.symbols_to_signal(symbol)
+        # up2 = self.generate_upchirps(1)
+        
+        down = self.generate_downchirps(3)
 
-        # 2 downchirps completos
-        for _ in range(2):
-            preamble.append(self.downchirp)
-################################################################################################################
-        # 0.25 downchirp 
-        #shift = self.Ns // 4
-        #quarter_down = self.downchirp[shift:]
-
+        # # 0.25 downchirp
         # shift = self.Ns // 4
-        #quarter_down = np.roll(self.downchirp, -shift)
-        #preamble.append(quarter_down)
+        # quarter_down = self.downchirp[shift:]
 
-        return np.concatenate(preamble)
-    
-    
+        return np.concatenate([up,down])
+        # return np.concatenate([up,SYMBOLRND,up2,down])
+   
     def msg_to_symbols(self, msg: str) -> list[int]:
         # Convertir todo el mensaje a una sola cadena de bits
-        data = msg.encode('latin-1')
+        data = msg.encode('latin1')  # Convertir a bytes usando latin1
         bit_string = "".join(f"{b:08b}" for b in data) # Cada letra a 8 bits
         
         symbols = []
@@ -84,34 +97,10 @@ class Modulador:
     def generate_header(self, payload_len: int) -> list[int]:
         if not (0 <= payload_len <= 255):
             raise ValueError("Payload debe ser 0-255 bytes")
-        return [payload_len]   # ← símbolo crudo, NO texto
+        
+        checksum = 255 - payload_len
 
-    
-    # def generate_header(self, payload_len: int) -> list[int]:
-    #     """
-    #     Codifica la longitud del payload (bytes)
-    #     como símbolos LoRa usando bit-packing.
-    #     """
-    #     if not (0 <= payload_len <= 255):
-    #         raise ValueError("Payload debe ser 0-255 bytes")
-
-    #     # Convertimos el byte payload_len a un carácter
-    #     return self.msg_to_symbols(chr(payload_len))
-
-    
-    # def generate_header(self, payload_len: int) -> list[int]:
-    #     return [payload_len]
-
-    # def generate_header(self, payload_len: int) -> list[int]:
-    #     """
-    #     Codifica la longitud del payload (bytes)
-    #     como símbolos LoRa usando bit-packing.
-    #     """
-    #     if not (0 <= payload_len <= 255):
-    #         raise ValueError("Payload debe ser 0-255 bytes")
-
-    #     return self.msg_to_symbols(chr(payload_len))
-
+        return [payload_len, payload_len, payload_len]
 
     def symbol_to_chirp(self, symbol: int) -> np.ndarray:
         if symbol < 0 or symbol >= self.M:
@@ -217,11 +206,11 @@ def main():
     filtered_noise = mod.bandpass_filter(noise, mod.f0, mod.f0 + mod.BW)
     signal_noisy = signal + filtered_noise
     filtered_signal_noisy = mod.bandpass_filter(signal_noisy, mod.f0, mod.f0 + mod.BW)
-    mod.save_spectrogram(signal, symbols, msg, save_as=f'Imagenes/fotos_sf{mod.SF}/signal_sf{mod.SF}.png')
-    mod.save_spectrogram(noise, symbols, msg, save_as=f'Imagenes/fotos_sf{mod.SF}/noise.png')
-    mod.save_spectrogram(filtered_noise, symbols, msg, save_as=f'Imagenes/fotos_sf{mod.SF}/filtered_noise.png')
-    mod.save_spectrogram(signal_noisy, symbols, msg, save_as=f'Imagenes/fotos_sf{mod.SF}/signal_noisy.png')
-    mod.save_spectrogram(filtered_signal_noisy, symbols, msg, save_as=f'Imagenes/fotos_sf{mod.SF}/filtered_signal_noisy.png')
+    # mod.save_spectrogram(signal, symbols, msg, save_as=f'Imagenes/fotos_sf{mod.SF}/signal_sf{mod.SF}.png')
+    # mod.save_spectrogram(noise, symbols, msg, save_as=f'Imagenes/fotos_sf{mod.SF}/noise.png')
+    # mod.save_spectrogram(filtered_noise, symbols, msg, save_as=f'Imagenes/fotos_sf{mod.SF}/filtered_noise.png')
+    # mod.save_spectrogram(signal_noisy, symbols, msg, save_as=f'Imagenes/fotos_sf{mod.SF}/signal_noisy.png')
+    # mod.save_spectrogram(filtered_signal_noisy, symbols, msg, save_as=f'Imagenes/fotos_sf{mod.SF}/filtered_signal_noisy.png')
     snr = mod.SNR_cal(filtered_noise, signal)
     print(f"SNR calculado: {snr:.2f} dB")
 
